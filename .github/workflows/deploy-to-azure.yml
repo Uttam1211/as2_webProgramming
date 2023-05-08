@@ -1,0 +1,30 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ecomApp.azurecr.io/ecomApp_app:latest
+
+    - name: Deploy to Azure Container Instances
+      run: |
+          az container create --resource-group ecommerce --name ecom-app --image ecomApp.azurecr.io/ecomApp_app:latest --registry-login-server ecomApp.azurecr.io --registry-username ecomApp --registry-password jjLNPt8aRQeS9eSfQ2SbE5ONyr99Q1GeqOIy+JGtlg+ACRDvZ9ur --dns-name-label ecom-appcom --ports 80
